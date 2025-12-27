@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "pdf2pic": "^3.2.0",
+    "tesseract.js": "^7.0.0"
+  }
+}

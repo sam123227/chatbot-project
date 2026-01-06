@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# python
+__pycache__/
+*.pyc
+venv/
+.venv/
+t5env
+
+# environment variables
+.env
+.env.*
+
+# firebase
+serviceAccountKey.json
+firebase-service-account.json
+
+# build
+build/
+dist/
+
+# logs
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/ my env is t5env 

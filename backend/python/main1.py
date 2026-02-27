@@ -6,7 +6,7 @@ from firebase_admin import firestore
 
 app = FastAPI(
     title="Student Notes CRUD API",
-    description="CRUD + Versioning + Analytics (No ML, No File Upload)",
+    description="CRUD + Versioning + Analytics",
     version="1.0.0"
 )
 
@@ -56,8 +56,6 @@ def create_user(user: User):
 @app.post("/notes")
 def create_note(note: Note):
     doc_ref = db.collection("notes").document()
-    
-    
     doc_ref.set({
         "userId": note.user_id,
         "title": note.title,
@@ -93,7 +91,6 @@ def read_note(note_id: str):
 
     note = doc.to_dict()
 
- 
     db.collection("analytics").add({
         "userId": note["userId"],
         "noteId": note_id,

@@ -165,6 +165,16 @@ def log_analytics(data: Analytics):
     })
     return {"status": "Logged"}
 
+@app.get("/notes/user/{user_id}")
+def get_user_notes(user_id: str):
+    docs = db.collection("notes").where("userId", "==", user_id).stream()
+    notes = []
+    for doc in docs:
+        note = doc.to_dict()
+        note["id"] = doc.id
+        notes.append(note)
+    return notes
+
 
 @app.get("/")
 def root():

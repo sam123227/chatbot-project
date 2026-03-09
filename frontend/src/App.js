@@ -27,18 +27,13 @@ function App() {
     const formData = new FormData();
     formData.append("file", file);
     setLoading(true);
-    setText("");
-    setSummary("");
-    setEntities({});
+    setText(""); setSummary(""); setEntities({});
     setStructuredNotes(null);
-    setShowText(false);
-    setShowSummary(false);
-    setShowNER(false);
-    setShowNotes(false);
+    setShowText(false); setShowSummary(false);
+    setShowNER(false); setShowNotes(false);
     try {
       const res = await fetch("http://localhost:8000/extract-file", {
-        method: "POST",
-        body: formData,
+        method: "POST", body: formData,
       });
       const data = await res.json();
       setText(data.raw_text || "");
@@ -69,9 +64,7 @@ function App() {
         }),
       });
       alert("Saved successfully!");
-    } catch (err) {
-      alert("Failed to save note to Firebase");
-    }
+    } catch { alert("Failed to save note to Firebase"); }
   };
 
   const handleViewHistory = async () => {
@@ -80,9 +73,7 @@ function App() {
       const data = await res.json();
       setSavedNotes(data);
       setShowHistory(true);
-    } catch (err) {
-      alert("Failed to load notes");
-    }
+    } catch { alert("Failed to load notes"); }
   };
 
   const handleEdit = (note, noteId) => {
@@ -97,330 +88,187 @@ function App() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: username,
-          title: editTitle,
-          content: editContent,
-          summary: "",
-          entities: {},
-          introduction: "",
-          sections: [],
-          conclusion: "",
+          user_id: username, title: editTitle,
+          content: editContent, summary: "",
+          entities: {}, introduction: "",
+          sections: [], conclusion: "",
         }),
       });
       alert("Updated successfully!");
       setEditingNote(null);
       handleViewHistory();
-    } catch (err) {
-      alert("Failed to update note");
-    }
+    } catch { alert("Failed to update note"); }
   };
 
   const handleDelete = async (noteId) => {
     if (!window.confirm("Are you sure?")) return;
     try {
-      await fetch(`http://localhost:8001/notes/${noteId}`, {
-        method: "DELETE",
-      });
+      await fetch(`http://localhost:8001/notes/${noteId}`, { method: "DELETE" });
       alert("Deleted successfully!");
       handleViewHistory();
-    } catch (err) {
-      alert("Failed to delete note");
-    }
+    } catch { alert("Failed to delete note"); }
   };
 
-  // ✅ Login screen
   if (!isLoggedIn) {
     return (
-      <div className="container" style={{ textAlign: "center", marginTop: "100px" }}>
-        <h1>Document Processing & Notes Service</h1>
-        <h3>Enter your name to continue</h3>
-        <input
-          type="text"
-          placeholder="Enter your name"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          style={{
-            padding: "10px", borderRadius: "8px",
-            border: "1px solid #d1d5db", marginRight: "10px", width: "250px",
-          }}
-        />
-        <button
-          onClick={() => { if (username.trim()) setIsLoggedIn(true); }}
-          style={{
-            backgroundColor: "#2563eb", color: "white",
-            padding: "10px 20px", borderRadius: "8px",
-            border: "none", cursor: "pointer",
-          }}
-        >
-          Continue
-        </button>
+      <div className="login-wrapper">
+        <div className="login-card">
+          <span className="login-icon">📄</span>
+          <h2 className="login-title">Document Processing & Notes Service</h2>
+          <p className="login-subtitle">Upload any document. Get intelligent study notes.</p>
+          <input
+            className="login-input"
+            type="text"
+            placeholder="Enter your name to continue..."
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && username.trim()) setIsLoggedIn(true); }}
+          />
+          <button className="btn-continue" onClick={() => { if (username.trim()) setIsLoggedIn(true); }}>
+            Continue →
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container">
-
-      {/* ✅ Header with truly centered title */}
-      <div style={{
-        position: "relative", display: "flex", alignItems: "center",
-        justifyContent: "flex-end", marginBottom: "30px",
-      }}>
-        <h1 style={{
-          position: "absolute", left: "50%", transform: "translateX(-50%)",
-          margin: 0, whiteSpace: "nowrap",
-        }}>
-          Document Processing & Notes Service
-        </h1>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ color: "#6b7280", fontSize: "14px" }}>
-            👤 {username}
-          </span>
-          <button
-            onClick={handleViewHistory}
-            style={{
-              backgroundColor: "#6366f1", color: "white",
-              padding: "8px 16px", borderRadius: "8px",
-              border: "none", cursor: "pointer",
-            }}
-          >
-            View Saved Notes
-          </button>
-          <button
-            onClick={() => setIsLoggedIn(false)}
-            style={{
-              backgroundColor: "#ef4444", color: "white",
-              padding: "8px 16px", borderRadius: "8px",
-              border: "none", cursor: "pointer",
-            }}
-          >
-            Logout
-          </button>
+    <div>
+      <nav className="navbar">
+        <span className="navbar-brand">📄 Notes Service</span>
+        <div className="navbar-right">
+          <div className="user-chip">
+            <div className="user-avatar">{username[0]?.toUpperCase()}</div>
+            {username}
+          </div>
+          <button className="btn-purple" onClick={handleViewHistory}>View Saved Notes</button>
+          <button className="btn-red" onClick={() => setIsLoggedIn(false)}>Logout</button>
         </div>
-      </div>
+      </nav>
 
-      <div className="upload-box">
-        <input type="file" accept=".pdf,.docx" onChange={handleFileChange} />
-        <button onClick={handleUpload}>
-          {loading ? "Processing..." : "Upload & Process"}
-        </button>
-      </div>
+      <div className="main-content">
 
-      {loading && <p className="loading">Processing document…</p>}
-
-      {(text || summary || Object.keys(entities).length > 0) && (
-        <div className="toggle-group">
-          {text && (
-            <button onClick={() => setShowText(!showText)}>
-              {showText ? "Hide Extracted Text" : "Show Extracted Text"}
-            </button>
-          )}
-          {summary && (
-            <button onClick={() => setShowSummary(!showSummary)}>
-              {showSummary ? "Hide Summary" : "Show Summary"}
-            </button>
-          )}
-          {Object.keys(entities).length > 0 && (
-            <button onClick={() => setShowNER(!showNER)}>
-              {showNER ? "Hide NER" : "Show NER"}
-            </button>
-          )}
-          {structuredNotes && !showNotes && (
-            <button onClick={() => setShowNotes(true)}>Show Notes</button>
-          )}
-        </div>
-      )}
-
-      {showText && (
-        <div className="section">
-          <h3>Extracted Text</h3>
-          <textarea value={text} readOnly />
-        </div>
-      )}
-
-      {showSummary && (
-        <div className="section">
-          <h3>Summary</h3>
-          <p>{summary}</p>
-        </div>
-      )}
-
-      {showNER && (
-        <div className="section">
-          <h3>Named Entity Recognition</h3>
-          {Object.entries(entities).map(([label, vals]) => (
-            <p key={label}>
-              <strong>{label}:</strong> {vals.join(", ")}
-            </p>
-          ))}
-        </div>
-      )}
-
-      {structuredNotes && showNotes && (
-        <div className="section notes">
-          <h2>{structuredNotes.title}</h2>
-          <h3>Introduction</h3>
-          <p>{structuredNotes.introduction}</p>
-          {structuredNotes.sections.map((sec, idx) => (
-            <div key={idx} className="note-section">
-              <h3>{sec.heading}</h3>
-              <ul>
-                {sec.points.map((p, i) => (
-                  <li key={i}>{p}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-          <h3>Conclusion</h3>
-          <p>{structuredNotes.conclusion}</p>
-          <button
-            onClick={handleSaveNote}
-            style={{
-              marginTop: "20px", backgroundColor: "#2563eb",
-              color: "white", padding: "10px 20px",
-              borderRadius: "8px", border: "none", cursor: "pointer",
-            }}
-          >
-            Save
-          </button>
-        </div>
-      )}
-
-      {showHistory && (
-        <div className="section">
-          <div style={{
-            display: "flex", justifyContent: "space-between",
-            alignItems: "center", marginBottom: "16px",
-          }}>
-            <h2>Saved Notes</h2>
-            <button
-              onClick={() => setShowHistory(false)}
-              style={{
-                backgroundColor: "#ef4444", color: "white",
-                padding: "6px 12px", borderRadius: "6px",
-                border: "none", cursor: "pointer",
-              }}
-            >
-              Close
+        <div className="upload-card">
+          <span className="upload-icon">📂</span>
+          <p className="upload-title">Upload Your Document</p>
+          <p className="upload-subtitle">Supports PDF and DOCX files</p>
+          <div className="upload-row">
+            <label className="btn-choose">
+              {file ? file.name : "Choose File"}
+              <input type="file" accept=".pdf,.docx" onChange={handleFileChange} style={{ display: "none" }} />
+            </label>
+            <button className="btn-upload" onClick={handleUpload}>
+              {loading ? "Processing..." : "Upload & Process"}
             </button>
           </div>
-
-          {savedNotes.length === 0 && <p>No saved notes found.</p>}
-
-          {savedNotes.map((item) => (
-            <div key={item.id} style={{
-              border: "1px solid #e5e7eb",
-              borderRadius: "8px", padding: "16px", marginBottom: "12px",
-            }}>
-              {editingNote === item.id ? (
-                <div>
-                  <input
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    style={{
-                      width: "100%", marginBottom: "8px",
-                      padding: "8px", borderRadius: "6px",
-                      border: "1px solid #d1d5db",
-                    }}
-                  />
-                  <textarea
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    rows={4}
-                    style={{
-                      width: "100%", marginBottom: "8px",
-                      padding: "8px", borderRadius: "6px",
-                      border: "1px solid #d1d5db",
-                    }}
-                  />
-                  <button
-                    onClick={() => handleSaveEdit(item.id)}
-                    style={{
-                      backgroundColor: "#22c55e", color: "white",
-                      padding: "6px 12px", borderRadius: "6px",
-                      border: "none", cursor: "pointer", marginRight: "8px",
-                    }}
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditingNote(null)}
-                    style={{
-                      backgroundColor: "#6b7280", color: "white",
-                      padding: "6px 12px", borderRadius: "6px",
-                      border: "none", cursor: "pointer",
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <h3 style={{ marginBottom: "8px" }}>
-                    {item.structuredNotes?.title || item.title}
-                  </h3>
-
-                  {item.structuredNotes?.introduction && (
-                    <div style={{ marginBottom: "8px" }}>
-                      <strong>Introduction</strong>
-                      <p style={{ color: "#374151", fontSize: "14px" }}>
-                        {item.structuredNotes.introduction}
-                      </p>
-                    </div>
-                  )}
-
-                  {item.structuredNotes?.sections?.map((sec, idx) => (
-                    <div key={idx} style={{ marginBottom: "8px" }}>
-                      <strong>{sec.heading}</strong>
-                      <ul style={{ marginTop: "4px" }}>
-                        {sec.points.map((p, i) => (
-                          <li key={i} style={{ fontSize: "14px", color: "#374151" }}>
-                            {p}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-
-                  {item.structuredNotes?.conclusion && (
-                    <div style={{ marginBottom: "8px" }}>
-                      <strong>Conclusion</strong>
-                      <p style={{ color: "#374151", fontSize: "14px" }}>
-                        {item.structuredNotes.conclusion}
-                      </p>
-                    </div>
-                  )}
-
-                  <p style={{ color: "#9ca3af", fontSize: "12px", marginBottom: "12px" }}>
-                    Version: {item.version || 1}
-                  </p>
-
-                  <button
-                    onClick={() => handleEdit(item, item.id)}
-                    style={{
-                      backgroundColor: "#f59e0b", color: "white",
-                      padding: "6px 12px", borderRadius: "6px",
-                      border: "none", cursor: "pointer", marginRight: "8px",
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    style={{
-                      backgroundColor: "#ef4444", color: "white",
-                      padding: "6px 12px", borderRadius: "6px",
-                      border: "none", cursor: "pointer",
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
         </div>
-      )}
+
+        {loading && (
+          <div className="loading-bar">
+            <div className="spinner"></div>
+            Processing document with AI...
+          </div>
+        )}
+
+        {(text || summary || Object.keys(entities).length > 0) && (
+          <div className="toggle-group">
+            {text && <button className="btn-toggle" onClick={() => setShowText(!showText)}>{showText ? "Hide" : "Show"} Extracted Text</button>}
+            {summary && <button className="btn-toggle" onClick={() => setShowSummary(!showSummary)}>{showSummary ? "Hide" : "Show"} Summary</button>}
+            {Object.keys(entities).length > 0 && <button className="btn-toggle" onClick={() => setShowNER(!showNER)}>{showNER ? "Hide" : "Show"} NER</button>}
+            {structuredNotes && <button className="btn-toggle" onClick={() => setShowNotes(!showNotes)}>{showNotes ? "Hide" : "Show"} Notes</button>}
+          </div>
+        )}
+
+        {showText && (
+          <div className="section-card">
+            <p className="section-heading">Extracted Text</p>
+            <textarea className="extracted-textarea" value={text} readOnly />
+          </div>
+        )}
+
+        {showSummary && (
+          <div className="section-card">
+            <p className="section-heading">Summary</p>
+            <p className="section-text">{summary}</p>
+          </div>
+        )}
+
+        {showNER && (
+          <div className="section-card">
+            <p className="section-heading">Named Entity Recognition</p>
+            {Object.entries(entities).map(([label, vals]) => (
+              <div className="ner-row" key={label}>
+                <span className="ner-label">{label}</span>
+                {vals.map((v, i) => <span className="ner-tag" key={i}>{v}</span>)}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {structuredNotes && showNotes && (
+          <div className="section-card">
+            <h2 className="notes-title">{structuredNotes.title}</h2>
+            <div className="notes-section">
+              <p className="notes-section-heading">Introduction</p>
+              <p className="notes-intro">{structuredNotes.introduction}</p>
+            </div>
+            {structuredNotes.sections.map((sec, idx) => (
+              <div className="notes-section" key={idx}>
+                <p className="notes-section-heading">{sec.heading}</p>
+                <ul className="notes-list">
+                  {sec.points.map((p, i) => <li key={i}>{p}</li>)}
+                </ul>
+              </div>
+            ))}
+            <div className="notes-section">
+              <p className="notes-section-heading">Conclusion</p>
+              <p className="notes-intro">{structuredNotes.conclusion}</p>
+            </div>
+            <button className="btn-save" onClick={handleSaveNote}>Save Notes ✓</button>
+          </div>
+        )}
+
+        {showHistory && (
+          <div className="section-card">
+            <div className="history-header">
+              <h2 className="history-title">Saved Notes</h2>
+              <button className="btn-close" onClick={() => setShowHistory(false)}>Close ✕</button>
+            </div>
+            {savedNotes.length === 0 && <p className="empty-state">No saved notes found.</p>}
+            {savedNotes.map((item) => (
+              <div className="saved-note-card" key={item.id}>
+                {editingNote === item.id ? (
+                  <div>
+                    <input className="edit-input" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                    <textarea className="edit-textarea" value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={4} />
+                    <button className="btn-confirm" onClick={() => handleSaveEdit(item.id)}>Save</button>
+                    <button className="btn-cancel" onClick={() => setEditingNote(null)}>Cancel</button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="saved-note-title">{item.structuredNotes?.title || item.title}</p>
+                    {item.structuredNotes?.introduction && (<><p className="saved-note-label">Introduction</p><p className="saved-note-text">{item.structuredNotes.introduction}</p></>)}
+                    {item.structuredNotes?.sections?.map((sec, idx) => (
+                      <div key={idx}>
+                        <p className="saved-note-label">{sec.heading}</p>
+                        <ul className="saved-note-list">{sec.points.map((p, i) => <li key={i}>{p}</li>)}</ul>
+                      </div>
+                    ))}
+                    {item.structuredNotes?.conclusion && (<><p className="saved-note-label">Conclusion</p><p className="saved-note-text">{item.structuredNotes.conclusion}</p></>)}
+                    <div className="saved-note-footer">
+                      <span className="version-badge">v{item.version || 1}</span>
+                      <div className="note-actions">
+                        <button className="btn-edit" onClick={() => handleEdit(item, item.id)}>Edit</button>
+                        <button className="btn-delete" onClick={() => handleDelete(item.id)}>Delete</button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -108,7 +108,7 @@ def summarize_text(text: str) -> str:
             continue
         cleaned.append(s)
 
-    # Fix missing subject in first sentence
+    
     if cleaned:
         first_words = cleaned[0].split()
         if first_words[0].lower() in ["is", "was", "are", "were", "has", "have", "its", "it"]:
@@ -151,17 +151,17 @@ def extract_entities(text: str):
             continue
         entities.setdefault(ent.label_, set()).add(clean_ent)
 
-    # Extract full 4-digit years
+    
     years = re.findall(r'\b(?:19|20)\d{2}\b', text)
     if years:
         entities.setdefault("DATE", set()).update(years)
 
-    # Extract figures
+    
     figures = re.findall(r'\b\d+[\.,]?\d*\s*(?:million|billion|thousand|%)\b', text, re.IGNORECASE)
     if figures:
         entities.setdefault("QUANTITY", set()).update([f.strip() for f in figures])
 
-    # Fix misclassified products
+    
     known_products = {"iphone", "ipad", "apple watch", "airpods", "mac",
                       "macbook", "app store", "android", "windows", "playstation"}
     if "ORG" in entities:
@@ -170,25 +170,25 @@ def extract_entities(text: str):
         if misclassified:
             entities.setdefault("PRODUCT", set()).update(misclassified)
 
-    # Fix misclassified People
+    
     false_people = {"buddha", "lumbini", "nepal", "app store"}
     if "PERSON" in entities:
         entities["PERSON"] = {e for e in entities["PERSON"]
                               if e.lower() not in false_people}
 
-    # Remove non-dates
+    
     false_dates = {"annually", "monthly", "weekly", "daily", "yearly"}
     if "DATE" in entities:
         entities["DATE"] = {e for e in entities["DATE"]
                             if e.lower() not in false_dates}
 
-    # Merge LOC into GPE
+    
     if "GPE" in entities and "LOC" in entities:
         entities["GPE"].update(entities.pop("LOC"))
     elif "LOC" in entities:
         entities["GPE"] = entities.pop("LOC")
 
-    # Extract noun phrases
+    
     important_terms = set()
     for chunk in doc.noun_chunks:
         term = chunk.text.strip()
@@ -209,7 +209,7 @@ def extract_entities(text: str):
         if filtered:
             entities.setdefault("TERMS", set()).update(filtered)
 
-    # Remove duplicate terms
+    
     if "TERMS" in entities:
         existing = set()
         for k, v in entities.items():
@@ -393,7 +393,7 @@ def generate_final_notes(summary: str, original_text: str = ""):
         clean_sentences.append(s)
     sentences = clean_sentences
 
-    # ✅ Fix missing subject in first sentence
+    
     if sentences:
         first_words = sentences[0].split()
         if first_words[0].lower() in ["is", "was", "are", "were", "has", "have", "its", "it"]:
@@ -407,7 +407,7 @@ def generate_final_notes(summary: str, original_text: str = ""):
     if not sentences:
         return {"title": "Document Notes", "introduction": "", "sections": [], "conclusion": ""}
 
-    # Extract title using NER from original text
+
     title = "Document Notes"
     if nlp:
         doc = nlp(original_text[:300] if original_text else " ".join(sentences[:2]))
@@ -416,7 +416,7 @@ def generate_final_notes(summary: str, original_text: str = ""):
                 title = ent.text.title() + " — Study Notes"
                 break
 
-    # Fallback title
+
     if title == "Document Notes" and sentences:
         topic_words = re.findall(r'\b[A-Z][a-z]{3,}\b', sentences[0])
         if topic_words:
